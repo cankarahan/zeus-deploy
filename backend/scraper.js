@@ -1,33 +1,37 @@
 const puppeteer = require("puppeteer");
-const cheerio = require("cheerio");
 
-async function scrapeMeals() {
-  const browser = await puppeteer.launch({
-    headless: "new",
-    args: ["--no-sandbox", "--disable-setuid-sandbox"]
-  });
-
-  const page = await browser.newPage();
-  await page.goto("https://sks.iuc.edu.tr/tr/yemeklistesi", {
-    waitUntil: "networkidle2",
-  });
-
-  const html = await page.content();
-  const $ = cheerio.load(html);
-  const meals = [];
-
-  $(".yemekMenuListe .card").each((i, el) => {
-    const date = $(el).find(".card-header").text().trim();
-    const items = [];
-    $(el).find(".list-group-item").each((j, item) => {
-      items.push($(item).text().trim());
+async function scrapeYemekListesi() {
+  try {
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
+    const page = await browser.newPage();
+    await page.goto("https://sks.iuc.edu.tr/tr/yemeklistesi", {
+      waitUntil: "networkidle2",
+      timeout: 0,
     });
 
-    meals.push({ date, items });
-  });
+    // Bekleme: sayfa içindeki yemek kartlarını hedef al
+    await page.waitForSelector(".menu-container");
 
-  await browser.close();
-  return meals;
+    const data = await page.evaluate(() => {
+      const cards = Array.from(document.querySelectorAll(".menu-container"));
+      return cards.map(card => {
+        const date = card.querySelector("b")?.innerText?.trim();
+        const meals = Array.from(card.querySelectorAll("tr"))
+          .map(row => row.innerText.trim())
+          .filter(text => text.length > 0);
+        return { date, meals };
+      });
+    });
+
+    await browser.close();
+    return data;
+  } catch (error) {
+    console.error("Scraping Hatası:", error);
+    return null;
+  }
 }
 
-module.exports = scrapeMeals;
+module.exports = scrapeYemekListesi;
