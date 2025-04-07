@@ -21,6 +21,16 @@ function App() {
     );
   };
 
+  useEffect(() => {
+    fetch('https://zeus-deploy.onrender.com/yemekler')
+      .then(res => res.json())
+      .then(data => {
+        console.log(data.yemekler); // ya da ekranda göster
+      });
+  }, []);
+  
+
+
   return (
     <div className={`container`}>
       <button onClick={toggleMode} style={{ marginBottom: "20px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: "6px", padding: "8px 16px", cursor: "pointer", fontWeight: "bold" }}>
