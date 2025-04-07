@@ -1,46 +1,41 @@
-// frontend/src/App.js
 import React, { useState } from "react";
 import mealData from "./data";
 import "./App.css";
 
 function App() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const currentMeal = mealData[currentIndex];
+  const [index, setIndex] = useState(0);
+  const [darkMode, setDarkMode] = useState(false);
+
+  const currentMeal = mealData[index];
 
   const nextMeal = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % mealData.length);
+    if (index < mealData.length - 1) setIndex(index + 1);
   };
 
   const prevMeal = () => {
-    setCurrentIndex(
-      (prevIndex) => (prevIndex - 1 + mealData.length) % mealData.length
-    );
+    if (index > 0) setIndex(index - 1);
   };
 
-  const [darkMode, setDarkMode] = useState(false);
-  const toggleDarkMode = () => setDarkMode(!darkMode);
+  const toggleMode = () => setDarkMode(!darkMode);
 
   return (
-    <div className={`App ${darkMode ? "dark" : "light"}`}>
-      <button className="toggle-theme" onClick={toggleDarkMode}>
-        {darkMode ? "Gündüz Modu" : "Gece Modu"}
+    <div className={darkMode ? "app dark" : "app light"}>
+      <button className="toggle-btn" onClick={toggleMode}>
+        {darkMode ? "☀️ Gündüz Modu" : "🌙 Gece Modu"}
       </button>
-
-      <h1 className="date-title">{currentMeal.date}</h1>
+      <h1>{currentMeal.date}</h1>
       <div className="meal-card">
-        {currentMeal.items.map((item, index) => (
-          <div key={index} className="meal-item">
+        {currentMeal.items.map((item, i) => (
+          <div key={i} className="meal-item">
             {item}
           </div>
         ))}
       </div>
-
-      <div className="button-container">
-        <button onClick={prevMeal} className="nav-button">&#8592; Geri</button>
-        <button onClick={nextMeal} className="nav-button">İleri &#8594;</button>
+      <div className="buttons">
+        <button onClick={prevMeal}>← Geri</button>
+        <button onClick={nextMeal}>İleri →</button>
       </div>
-
-      <p className="footer-text">Ciğeristana 550 domalmak isterseniz tabi orası ayrı :)</p>
+      <p className="footer">Ciğeristana 550 domalmak isterseniz tabi orası ayrı :)</p>
     </div>
   );
 }
