@@ -1,33 +1,33 @@
-const puppeteer = require('puppeteer');
+const puppeteer = require("puppeteer");
+const cheerio = require("cheerio");
 
-async function fetchMeals() {
+async function scrapeMeals() {
   const browser = await puppeteer.launch({
-    headless: 'new', // headless:true de olur
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    headless: "new",
+    args: ["--no-sandbox", "--disable-setuid-sandbox"]
   });
-  const page = await browser.newPage();
-  await page.goto('https://sks.iuc.edu.tr/tr/yemeklistesi', { waitUntil: 'networkidle0' });
 
-  const data = await page.evaluate(() => {
-    const result = [];
-    const cards = document.querySelectorAll('.col-sm-6.col-md-4.col-lg-3.ng-scope');
-    
-    cards.forEach(card => {
-      const date = card.querySelector('b')?.innerText?.trim();
-      const meals = Array.from(card.querySelectorAll('table tr:nth-child(n+2) td')).map(td => td.innerText.trim());
-      const cal = meals.pop(); // en sondaki kalori bilgisini çıkar
-      result.push({
-        tarih: date,
-        ogunler: meals,
-        kalori: cal
-      });
+  const page = await browser.newPage();
+  await page.goto("https://sks.iuc.edu.tr/tr/yemeklistesi", {
+    waitUntil: "networkidle2",
+  });
+
+  const html = await page.content();
+  const $ = cheerio.load(html);
+  const meals = [];
+
+  $(".yemekMenuListe .card").each((i, el) => {
+    const date = $(el).find(".card-header").text().trim();
+    const items = [];
+    $(el).find(".list-group-item").each((j, item) => {
+      items.push($(item).text().trim());
     });
 
-    return result;
+    meals.push({ date, items });
   });
 
   await browser.close();
-  return data;
+  return meals;
 }
 
-module.exports = fetchMeals;
+module.exports = scrapeMeals;

@@ -1,40 +1,22 @@
-﻿const express = require('express');
-const axios = require('axios');
-const cheerio = require('cheerio');
-const cors = require('cors');
+﻿const express = require("express");
+const cors = require("cors");
+const scraper = require("./scraper");
 
 const app = express();
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 
-app.get('/yemekler', async (req, res) => {
+app.get("/yemekler", async (req, res) => {
   try {
-    const response = await axios.get('https://sks.iuc.edu.tr/tr/yemeklistesi');
-    const $ = cheerio.load(response.data);
-    const yemekler = [];
-
-    $('.col-sm-6.col-md-4.col-lg-3.ng-scope').each((i, elem) => {
-      const date = $(elem).find('b').text().trim();
-      const meals = [];
-      $(elem).find('table tr').each((j, row) => {
-        const txt = $(row).text().trim();
-        if (txt && !txt.includes('.2025') && !txt.includes('Kalori')) {
-          meals.push(txt);
-        }
-      });
-      if (date && meals.length) {
-        yemekler.push({ tarih: date, ogun: meals });
-      }
-    });
-
-    res.json({ yemekler });
+    const data = await scraper();
+    res.json(data);
   } catch (error) {
-    console.error('Scraping hatası:', error.message);
-    res.status(500).json({ error: 'Veri çekilemedi' });
+    console.error("Veri çekme hatası:", error);
+    res.status(500).json({ error: "Veri alınamadı" });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`API ${PORT} portunda çalışıyor`);
+  console.log(`Sunucu çalışıyor: http://localhost:${PORT}`);
 });
