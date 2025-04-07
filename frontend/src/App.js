@@ -1,23 +1,37 @@
 import React, { useState } from "react";
-import yemekListesi from "./data";
+import mealData from "./data";
 
 function App() {
   const [index, setIndex] = useState(0);
-  const gun = yemekListesi[index];
+
+  const prevDay = () => {
+    if (index > 0) setIndex(index - 1);
+  };
+
+  const nextDay = () => {
+    if (index < mealData.length - 1) setIndex(index + 1);
+  };
+
+  const { date, items } = mealData[index];
 
   return (
-    <div style={{ textAlign: "center", padding: "30px" }}>
-      <h2>{gun.tarih} - {gun.gun}</h2>
-      <ul>
-        {gun.icerik.map((item, i) => (
-          <li key={i}>{item}</li>
+    <div style={{ textAlign: "center", marginTop: "30px" }}>
+      <h2>{date}</h2>
+      <div style={{
+        border: "1px solid #ccc",
+        padding: "20px",
+        margin: "20px auto",
+        width: "300px",
+        borderRadius: "10px",
+        background: "#f9f9f9"
+      }}>
+        {items.map((item, i) => (
+          <p key={i}>{item}</p>
         ))}
-      </ul>
-      <p><strong>{gun.kalori}</strong></p>
-
+      </div>
       <div>
-        <button disabled={index === 0} onClick={() => setIndex(index - 1)}>◀ Geri</button>
-        <button disabled={index === yemekListesi.length - 1} onClick={() => setIndex(index + 1)}>İleri ▶</button>
+        <button onClick={prevDay} disabled={index === 0}>← Geri</button>
+        <button onClick={nextDay} disabled={index === mealData.length - 1}>İleri →</button>
       </div>
     </div>
   );
