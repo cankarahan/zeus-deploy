@@ -1,37 +1,33 @@
 const puppeteer = require('puppeteer');
-const puppeteer = require('puppeteer-core');
-const chromium = require('chrome-aws-lambda');
 
-
-async function scrapeYemekler() {
+async function fetchMeals() {
   const browser = await puppeteer.launch({
-    args: chromium.args,
-    executablePath: await chromium.executablePath,
-    headless: chromium.headless
+    headless: 'new', // headless:true de olur
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
-  
   const page = await browser.newPage();
-  await page.goto('https://sks.iuc.edu.tr/tr/yemeklistesi', { waitUntil: 'networkidle2' });
+  await page.goto('https://sks.iuc.edu.tr/tr/yemeklistesi', { waitUntil: 'networkidle0' });
 
-  const result = await page.evaluate(() => {
-    const gunlukKartlar = document.querySelectorAll('.col-sm-6.col-md-4.col-lg-3.ng-scope');
-
-    const yemekler = Array.from(gunlukKartlar).map(kart => {
-      const tarih = kart.querySelector('b')?.innerText.trim();
-      const satirlar = kart.querySelectorAll('td');
-      const detaylar = Array.from(satirlar).map(s => s.innerText.trim()).filter(s => s !== '');
-
-      return {
-        tarih,
-        detaylar
-      };
+  const data = await page.evaluate(() => {
+    const result = [];
+    const cards = document.querySelectorAll('.col-sm-6.col-md-4.col-lg-3.ng-scope');
+    
+    cards.forEach(card => {
+      const date = card.querySelector('b')?.innerText?.trim();
+      const meals = Array.from(card.querySelectorAll('table tr:nth-child(n+2) td')).map(td => td.innerText.trim());
+      const cal = meals.pop(); // en sondaki kalori bilgisini çıkar
+      result.push({
+        tarih: date,
+        ogunler: meals,
+        kalori: cal
+      });
     });
 
-    return yemekler;
+    return result;
   });
 
   await browser.close();
-  return result;
+  return data;
 }
 
-module.exports = scrapeYemekler;
+module.exports = fetchMeals;
