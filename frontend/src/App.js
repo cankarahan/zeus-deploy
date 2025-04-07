@@ -6,36 +6,41 @@ function App() {
   const [index, setIndex] = useState(0);
   const [darkMode, setDarkMode] = useState(false);
 
-  const currentMeal = mealData[index];
-
-  const nextMeal = () => {
-    if (index < mealData.length - 1) setIndex(index + 1);
+  const toggleMode = () => {
+    setDarkMode((prev) => !prev);
+    document.body.classList.toggle("dark-mode", !darkMode);
   };
 
-  const prevMeal = () => {
-    if (index > 0) setIndex(index - 1);
+  const handleNext = () => {
+    setIndex((prevIndex) => (prevIndex + 1) % mealData.length);
   };
 
-  const toggleMode = () => setDarkMode(!darkMode);
+  const handlePrev = () => {
+    setIndex((prevIndex) =>
+      prevIndex === 0 ? mealData.length - 1 : prevIndex - 1
+    );
+  };
 
   return (
-    <div className={darkMode ? "app dark" : "app light"}>
-      <button className="toggle-btn" onClick={toggleMode}>
-        {darkMode ? "☀️ Gündüz Modu" : "🌙 Gece Modu"}
+    <div className={`container`}>
+      <button onClick={toggleMode} style={{ marginBottom: "20px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: "6px", padding: "8px 16px", cursor: "pointer", fontWeight: "bold" }}>
+        {darkMode ? "🌞 Gündüz Modu" : "🌙 Gece Modu"}
       </button>
-      <h1>{currentMeal.date}</h1>
-      <div className="meal-card">
-        {currentMeal.items.map((item, i) => (
-          <div key={i} className="meal-item">
-            {item}
-          </div>
+
+      <div className="date">{mealData[index].date}</div>
+
+      <div className="card">
+        {mealData[index].items.map((item, i) => (
+          <div key={i} className="meal-item">{item}</div>
         ))}
       </div>
-      <div className="buttons">
-        <button onClick={prevMeal}>← Geri</button>
-        <button onClick={nextMeal}>İleri →</button>
+
+      <div className="button-group">
+        <button onClick={handlePrev}>← Geri</button>
+        <button onClick={handleNext}>İleri →</button>
       </div>
-      <p className="footer">Ciğeristana 550 domalmak isterseniz tabi orası ayrı :)</p>
+
+      <div className="note">Ciğeristana 550 domalmak isterseniz tabi orası ayrı :)</div>
     </div>
   );
 }
