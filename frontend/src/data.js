@@ -1,15 +1,5 @@
 const mealData = [
-  {
-   
-    date: "07.04.2025",
-    items: [
-      "Düğün Çorbası",
-    "Etsiz Kuru Fasulye",
-    "Pirinç Pilavı",
-    "Yoğurt",
-    "1017 Kalori"
-    ]
-  },
+ 
   {
     date: "08.04.2025",
     items: [

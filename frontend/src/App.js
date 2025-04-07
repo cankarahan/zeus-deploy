@@ -1,38 +1,32 @@
 import React, { useState } from "react";
 import mealData from "./data";
+import "./App.css";
 
 function App() {
   const [index, setIndex] = useState(0);
-
-  const prevDay = () => {
-    if (index > 0) setIndex(index - 1);
-  };
-
-  const nextDay = () => {
-    if (index < mealData.length - 1) setIndex(index + 1);
-  };
-
   const { date, items } = mealData[index];
 
+  const handlePrevious = () => {
+    setIndex((prevIndex) => (prevIndex > 0 ? prevIndex - 1 : prevIndex));
+  };
+
+  const handleNext = () => {
+    setIndex((prevIndex) => (prevIndex < mealData.length - 1 ? prevIndex + 1 : prevIndex));
+  };
+
   return (
-    <div style={{ textAlign: "center", marginTop: "30px" }}>
-      <h2>{date}</h2>
-      <div style={{
-        border: "1px solid #ccc",
-        padding: "20px",
-        margin: "20px auto",
-        width: "300px",
-        borderRadius: "10px",
-        background: "#f9f9f9"
-      }}>
+    <div className="container">
+      <h1 className="date">{date}</h1>
+      <div className="card">
         {items.map((item, i) => (
           <p key={i}>{item}</p>
         ))}
       </div>
-      <div>
-        <button onClick={prevDay} disabled={index === 0}>← Geri</button>
-        <button onClick={nextDay} disabled={index === mealData.length - 1}>İleri →</button>
+      <div className="buttons">
+        <button onClick={handlePrevious}>← Geri</button>
+        <button onClick={handleNext}>İleri →</button>
       </div>
+      <p className="footer">Ciğeristana 550 domalmak isterseniz tabi orası ayrı :)</p>
     </div>
   );
 }
