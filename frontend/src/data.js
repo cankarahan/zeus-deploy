@@ -1,33 +1,6 @@
 const mealData = [
   {
-    date: "01.04.2025",
-    items: [
-      "RAMAZAN BAYRAMI'NIN 3. GÜNÜ",
-    "Kalori"
-    ]
-  },
-  {
-    date: "02.04.2025",
-    items: [
-      "İDARİ İZİN",
-    "Kalori"
-    ]
-  },
-  {
-    date: "03.04.2025",
-    items: [
-      "İDARİ İZİN",
-    "Kalori"
-    ]
-  },
-  {
-    date: "04.04.2025",
-    items: [
-      "İDARİ İZİN",
-    "Kalori"
-    ]
-  },
-  {
+   
     date: "07.04.2025",
     items: [
       "Düğün Çorbası",
