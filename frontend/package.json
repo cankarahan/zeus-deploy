@@ -1,12 +1,14 @@
-﻿'{
+﻿@'
+{
   "name": "frontend",
-  "version": "1.0.0"
-}' | Out-File -Encoding utf8 frontend\package.json
-
-"scripts": {
-  "start": "react-scripts start",
-  "build": "react-scripts build"
+  "version": "1.0.0",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build"
+  }
 }
+'@ | Out-File -Encoding utf8 frontend\package.json
+
 
 '<!DOCTYPE html>
 <html>
