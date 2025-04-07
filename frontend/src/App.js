@@ -1,7 +1,12 @@
-
 import React from "react";
+
 function App() {
-  return <h1>Selam Can 👑</h1>;
+  return (
+    <div style={{ textAlign: "center", marginTop: "100px" }}>
+      <h1>Selam Can 👑</h1>
+      <p>Frontend başarıyla çalışıyor!</p>
+    </div>
+  );
 }
+
 export default App;
- | Out-File -Encoding utf8 frontend\src\App.js
