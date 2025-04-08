@@ -9,10 +9,14 @@ function App() {
     const fetchData = async () => {
       try {
         const response = await fetch("https://zeus-deploy.onrender.com/yemekler");
+        console.log("API'den dönen veri:", response);
         const data = await response.json();
 
         const today = new Date();
-        const formattedToday = today.toLocaleDateString("tr-TR").split("T")[0];
+const formattedToday = today
+  .toLocaleDateString("tr-TR", { day: "2-digit", month: "2-digit", year: "numeric" })
+  .replace(/\//g, ".");
+
 
         const index = data.findIndex(item => item.date === formattedToday);
         setMealData(data);
