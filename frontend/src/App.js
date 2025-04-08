@@ -1,56 +1,59 @@
-import React, { useState } from "react";
-import mealData from "./data";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 
 function App() {
-  const [index, setIndex] = useState(0);
-  const [darkMode, setDarkMode] = useState(false);
+  const [mealData, setMealData] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-  const toggleMode = () => {
-    setDarkMode((prev) => !prev);
-    document.body.classList.toggle("dark-mode", !darkMode);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("https://zeus-deploy.onrender.com/yemekler");
+        const data = await response.json();
+
+        const today = new Date();
+        const formattedToday = today.toLocaleDateString("tr-TR").split("T")[0];
+
+        const index = data.findIndex(item => item.date === formattedToday);
+        setMealData(data);
+        setCurrentIndex(index !== -1 ? index : 0);
+      } catch (error) {
+        console.error("Veri çekme hatası:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : prev));
   };
 
   const handleNext = () => {
-    setIndex((prevIndex) => (prevIndex + 1) % mealData.length);
+    setCurrentIndex((prev) => (prev < mealData.length - 1 ? prev + 1 : prev));
   };
 
-  const handlePrev = () => {
-    setIndex((prevIndex) =>
-      prevIndex === 0 ? mealData.length - 1 : prevIndex - 1
-    );
-  };
-
-  useEffect(() => {
-    fetch('https://zeus-deploy.onrender.com/yemekler')
-      .then(res => res.json())
-      .then(data => {
-        console.log(data.yemekler); // ya da ekranda göster
-      });
-  }, []);
-  
-
+  const currentMeal = mealData[currentIndex];
 
   return (
-    <div className={`container`}>
-      <button onClick={toggleMode} style={{ marginBottom: "20px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: "6px", padding: "8px 16px", cursor: "pointer", fontWeight: "bold" }}>
-        {darkMode ? "🌞 Gündüz Modu" : "🌙 Gece Modu"}
-      </button>
-
-      <div className="date">{mealData[index].date}</div>
-
-      <div className="card">
-        {mealData[index].items.map((item, i) => (
-          <div key={i} className="meal-item">{item}</div>
-        ))}
-      </div>
-
-      <div className="button-group">
-        <button onClick={handlePrev}>← Geri</button>
-        <button onClick={handleNext}>İleri →</button>
-      </div>
-
-      <div className="note">Ciğeristana 550 domalmak isterseniz tabi orası ayrı :)</div>
+    <div className="container">
+      {currentMeal ? (
+        <>
+          <div className="date">{currentMeal.date}</div>
+          <div className="card">
+            {currentMeal.items.map((item, index) => (
+              <div className="meal-item" key={index}>{item}</div>
+            ))}
+          </div>
+          <div className="button-group">
+            <button onClick={handlePrev} disabled={currentIndex === 0}>← Önceki</button>
+            <button onClick={handleNext} disabled={currentIndex === mealData.length - 1}>Sonraki →</button>
+          </div>
+        </>
+      ) : (
+        <p>Yükleniyor...</p>
+      )}
+      <div className="note">Veriler: İstanbul Üniversitesi Yemek Listesi</div>
     </div>
   );
 }

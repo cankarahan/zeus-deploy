@@ -1,37 +1,43 @@
 const puppeteer = require("puppeteer");
 
-async function scrapeYemekListesi() {
-  try {
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    });
-    const page = await browser.newPage();
-    await page.goto("https://sks.iuc.edu.tr/tr/yemeklistesi", {
-      waitUntil: "networkidle2",
-      timeout: 0,
-    });
+async function fetchYemekListesi() {
+  const url = "https://sks.iuc.edu.tr/tr/yemeklistesi";
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  });
+  const page = await browser.newPage();
 
-    // Bekleme: sayfa içindeki yemek kartlarını hedef al
-    await page.waitForSelector(".menu-container");
+  await page.goto(url, { waitUntil: "networkidle2", timeout: 0 });
 
-    const data = await page.evaluate(() => {
-      const cards = Array.from(document.querySelectorAll(".menu-container"));
-      return cards.map(card => {
-        const date = card.querySelector("b")?.innerText?.trim();
-        const meals = Array.from(card.querySelectorAll("tr"))
-          .map(row => row.innerText.trim())
-          .filter(text => text.length > 0);
-        return { date, meals };
-      });
-    });
+  // Sayfa tamamen yüklendikten sonra tüm kartları seç
+  const data = await page.evaluate(() => {
+    const cards = Array.from(document.querySelectorAll(".col-sm-6.col-md-4.col-lg-3.ng-scope"));
+    
+    // İlk kartı alalım (bugünün yemeği)
+    const firstCard = cards[0];
+    if (!firstCard) return [];
 
-    await browser.close();
-    return data;
-  } catch (error) {
-    console.error("Scraping Hatası:", error);
-    return null;
-  }
+    const lines = firstCard.innerText
+      .split("\n")
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+
+    // Dizi: [Tarih, Yemek1, Yemek2, ..., Kalori bilgisi]
+    const tarih = lines[0];
+    const kaloriSatiri = lines.find(l => l.toLowerCase().includes("kalori"));
+    const kalori = kaloriSatiri ? kaloriSatiri : null;
+    const yemekler = lines.slice(1, kalori ? lines.indexOf(kaloriSatiri) : lines.length);
+
+    return {
+      tarih,
+      yemekler,
+      kalori,
+    };
+  });
+
+  await browser.close();
+  return data;
 }
 
-module.exports = scrapeYemekListesi;
+module.exports = fetchYemekListesi;
