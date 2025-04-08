@@ -8,26 +8,25 @@ function App() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("https://zeus-deploy.onrender.com/yemekler");
-        console.log("API'den dönen veri:", response);
+        const response = await fetch("http://localhost:3000/yemekler"); // Render'daysa URL'yi değiştir
         const data = await response.json();
-
-        const today = new Date();
-const formattedToday = today
-  .toLocaleDateString("tr-TR", { day: "2-digit", month: "2-digit", year: "numeric" })
-  .replace(/\//g, ".");
-
-
-        const index = data.findIndex(item => item.date === formattedToday);
-        setMealData(data);
-        setCurrentIndex(index !== -1 ? index : 0);
+        console.log("API'den gelen veri:", data);
+  
+        if (data && data.tarih) {
+          setTarih(data.tarih);
+          setYemekler(data.yemekler || []);
+          setKalori(data.kalori || "");
+        } else {
+          console.error("Veri beklenilen formatta değil:", data);
+        }
       } catch (error) {
         console.error("Veri çekme hatası:", error);
       }
     };
-
+  
     fetchData();
   }, []);
+  
 
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev > 0 ? prev - 1 : prev));

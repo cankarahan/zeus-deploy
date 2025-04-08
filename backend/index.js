@@ -3,25 +3,24 @@ const cors = require("cors");
 const fetchYemekListesi = require("./scraper");
 
 const app = express();
-app.use(cors());
+const PORT = process.env.PORT || 3000;
 
-app.get("/", (req, res) => {
-  res.send("Backend çalışıyor 🚀");
-});
+app.use(cors());
 
 app.get("/yemekler", async (req, res) => {
   try {
-    const result = await fetchYemekListesi();
-    if (result && result.yemekler?.length > 0) {
-      res.json(result);
-    } else {
-      res.status(404).json({ error: "Yemek verisi bulunamadı." });
-    }
-  } catch (err) {
-    console.error("Hata:", err.message);
-    res.status(500).json({ error: "İçerik alınamadı" });
+    const yemekData = await fetchYemekListesi();
+    res.json(yemekData);
+  } catch (error) {
+    console.error("API Hatası:", error);
+    res.status(500).json({ error: "Veri alınamadı" });
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server ${PORT} portunda çalışıyor.`));
+app.get("/", (req, res) => {
+  res.send("Zeus Yemek API çalışıyor 🍽️");
+});
+
+app.listen(PORT, () => {
+  console.log(`Sunucu ${PORT} portunda çalışıyor`);
+});
