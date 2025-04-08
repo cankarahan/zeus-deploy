@@ -1,38 +1,28 @@
 const puppeteer = require("puppeteer");
+const cheerio = require("cheerio");
 
-async function fetchYemekListesi(targetDate) {
+async function ayinYemekListesiniGetir() {
   const browser = await puppeteer.launch({ headless: "new" });
   const page = await browser.newPage();
-  await page.goto("https://sks.iuc.edu.tr/tr/yemeklistesi", { waitUntil: "domcontentloaded" });
+  await page.goto("https://sks.iuc.edu.tr/tr/yemeklistesi", { waitUntil: "networkidle0" });
+  const content = await page.content();
+  await browser.close();
 
-  await page.waitForSelector(".col-sm-6.col-md-4.col-lg-3.ng-scope");
+  const $ = cheerio.load(content);
+  const yemekVerisi = [];
 
-  const data = await page.evaluate((targetDate) => {
-    const allCards = document.querySelectorAll(".col-sm-6.col-md-4.col-lg-3.ng-scope");
-
-    let result = {
-      tarih: null,
-      yemekler: [],
-      kalori: null
-    };
-
-    allCards.forEach(card => {
-      const dateText = card.querySelector("b")?.textContent.trim();
-      if (dateText === targetDate) {
-        const items = Array.from(card.querySelectorAll("td")).map(td => td.textContent.trim()).filter(Boolean);
-
-        result.tarih = dateText;
-        result.yemekler = items.slice(0, -1);
-        result.kalori = items[items.length - 1];
-      }
+  $(".yemek-listesi div.accordion-item").each((_, elem) => {
+    const tarih = $(elem).find("h2 button").text().trim().split(" - ")[0];
+    const yemekler = [];
+    $(elem).find("ul li").each((_, li) => {
+      yemekler.push($(li).text().trim());
     });
 
-    return result;
-  }, targetDate);
+    const kalori = $(elem).find(".kalori").text().trim() || "Kalori";
+    yemekVerisi.push({ tarih, yemekler, kalori });
+  });
 
-  await browser.close();
-  return data;
+  return yemekVerisi;
 }
 
-
-module.exports = fetchYemekListesi;
+module.exports = { ayinYemekListesiniGetir };

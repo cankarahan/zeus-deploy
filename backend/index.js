@@ -1,32 +1,35 @@
 ﻿const express = require("express");
 const cors = require("cors");
-const fetchYemekListesi = require("./scraper");
+const { ayinYemekListesiniGetir } = require("./scraper");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = 3000;
 
 app.use(cors());
 
-app.get('/yemekler', async (req, res) => {
-  try {
-    const tarih = req.query.date;
-    if (!tarih) {
-      return res.status(400).json({ error: "Tarih parametresi gerekli. /yemekler?date=YYYY-MM-DD" });
-    }
+let aylikVeri = [];
 
-    const veri = await fetchYemekListesi(tarih); // scraper.js içindeki fonksiyon
-    res.json(veri);
-  } catch (error) {
-    console.error("Sunucu Hatası:", error);
-    res.status(500).json({ error: "İçerik alınamadı" });
+(async () => {
+  try {
+    aylikVeri = await ayinYemekListesiniGetir();
+    console.log("Ay verisi başarıyla yüklendi.");
+  } catch (err) {
+    console.error("Scraper Hatası:", err);
+  }
+})();
+
+app.get("/yemekler", (req, res) => {
+  const date = req.query.date;
+  if (!date) return res.status(400).json({ error: "Tarih belirtilmedi" });
+
+  const sonuc = aylikVeri.find((v) => v.tarih === date);
+  if (sonuc) {
+    res.json(sonuc);
+  } else {
+    res.status(404).json({ error: "İçerik bulunamadı" });
   }
 });
 
-
-app.get("/", (req, res) => {
-  res.send("Zeus Yemek API çalışıyor 🍽️");
-});
-
-app.listen(PORT, () => {
-  console.log(`Sunucu ${PORT} portunda çalışıyor`);
+app.listen(port, () => {
+  console.log(`Sunucu ${port} portunda çalışıyor`);
 });

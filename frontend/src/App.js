@@ -1,68 +1,72 @@
-import React, { useState, useEffect } from "react";
-import "./App.css";
+import React, { useEffect, useState } from 'react';
+import './App.css';
 
 function App() {
-  const [currentDate, setCurrentDate] = useState(getTodayFormatted());
-  const [mealData, setMealData] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  function getTodayFormatted() {
-    const today = new Date();
-    return today.toLocaleDateString("tr-TR");
-  }
+  const [allMeals, setAllMeals] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
+    const fetchMeals = async () => {
       try {
-        const response = await fetch(`https://zeus-deploy.onrender.com/yemekler?date=${currentDate}`);
+        const response = await fetch('https://zeus-deploy.onrender.com/yemekler');
         const data = await response.json();
-        setMealData(data);
-      } catch (error) {
-        console.error("Veri çekme hatası:", error);
-        setMealData(null);
-      } finally {
-        setLoading(false);
+
+        if (Array.isArray(data) && data.length > 0) {
+          setAllMeals(data);
+
+          // Tarih karşılaştırmasıyla bugünkü indexi bul:
+          const today = new Date().toLocaleDateString('tr-TR');
+          const foundIndex = data.findIndex((item) => item.tarih === today);
+          setCurrentIndex(foundIndex !== -1 ? foundIndex : 0);
+        }
+      } catch (err) {
+        console.error('Veri alınamadı:', err);
       }
     };
 
-    fetchData();
-  }, [currentDate]);
+    fetchMeals();
+  }, []);
 
   const handleNext = () => {
-    const [day, month, year] = currentDate.split(".").map(Number);
-    const newDate = new Date(year, month - 1, day + 1);
-    const formatted = newDate.toLocaleDateString("tr-TR");
-    setCurrentDate(formatted);
+    setCurrentIndex((prev) => Math.min(prev + 1, allMeals.length - 1));
   };
 
   const handlePrev = () => {
-    const [day, month, year] = currentDate.split(".").map(Number);
-    const newDate = new Date(year, month - 1, day - 1);
-    const formatted = newDate.toLocaleDateString("tr-TR");
-    setCurrentDate(formatted);
+    setCurrentIndex((prev) => Math.max(prev - 1, 0));
   };
 
+  const handleToday = () => {
+    const today = new Date().toLocaleDateString('tr-TR');
+    const todayIndex = allMeals.findIndex((item) => item.tarih === today);
+    if (todayIndex !== -1) {
+      setCurrentIndex(todayIndex);
+    }
+  };
+
+  const currentMeal = allMeals[currentIndex];
+
   return (
-    <div className="container">
-      {loading ? (
-        <p>Yükleniyor...</p>
-      ) : mealData && mealData.tarih ? (
-        <>
-          <div className="date">{mealData.tarih}</div>
-          <div className="card">
-            {mealData.yemekler.map((item, index) => (
-              <div className="meal-item" key={index}>{item}</div>
-            ))}
-          </div>
-          <div className="button-group">
-            <button onClick={handlePrev}>← Önceki</button>
-            <button onClick={handleNext}>Sonraki →</button>
-          </div>
-        </>
+    <div className="app">
+      <h1>İstanbul Üniversitesi Yemek Menüsü</h1>
+
+      {currentMeal ? (
+        <div className="meal-card">
+          <p><strong>{currentMeal.tarih}</strong></p>
+          {currentMeal.yemekler.map((item, i) => (
+            <p key={i}>{item}</p>
+          ))}
+          <p><strong>{currentMeal.kalori}</strong></p>
+        </div>
       ) : (
-        <p>Veri bulunamadı</p>
+        <p>Yükleniyor...</p>
       )}
+
+      <div className="button-group">
+        <button onClick={handlePrev} disabled={currentIndex === 0}>← Önceki</button>
+        <button onClick={handleToday}>🎯 Bugün</button>
+        <button onClick={handleNext} disabled={currentIndex === allMeals.length - 1}>Sonraki →</button>
+      </div>
+
       <div className="note">Veriler: İstanbul Üniversitesi Yemek Listesi</div>
     </div>
   );
