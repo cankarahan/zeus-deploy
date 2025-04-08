@@ -3,7 +3,7 @@ const puppeteer = require("puppeteer");
 async function fetchYemekListesi() {
   const url = "https://sks.iuc.edu.tr/tr/yemeklistesi";
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: "new",
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
   const page = await browser.newPage();
