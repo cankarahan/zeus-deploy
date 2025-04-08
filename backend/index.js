@@ -7,15 +7,21 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 
-app.get("/yemekler", async (req, res) => {
+app.get('/yemekler', async (req, res) => {
   try {
-    const yemekData = await fetchYemekListesi();
-    res.json(yemekData);
+    const tarih = req.query.date;
+    if (!tarih) {
+      return res.status(400).json({ error: "Tarih parametresi gerekli. /yemekler?date=YYYY-MM-DD" });
+    }
+
+    const veri = await fetchYemekListesi(tarih); // scraper.js içindeki fonksiyon
+    res.json(veri);
   } catch (error) {
-    console.error("API Hatası:", error);
-    res.status(500).json({ error: "Veri alınamadı" });
+    console.error("Sunucu Hatası:", error);
+    res.status(500).json({ error: "İçerik alınamadı" });
   }
 });
+
 
 app.get("/", (req, res) => {
   res.send("Zeus Yemek API çalışıyor 🍽️");
