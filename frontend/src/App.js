@@ -1,72 +1,70 @@
-import React, { useEffect, useState } from 'react';
-import './App.css';
+import React, { useState } from "react";
+import mealData from "./data";
+import "./App.css";
 
 function App() {
-  const [allMeals, setAllMeals] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    const fetchMeals = async () => {
-      try {
-        const response = await fetch('https://zeus-deploy.onrender.com/yemekler');
-        const data = await response.json();
-
-        if (Array.isArray(data) && data.length > 0) {
-          setAllMeals(data);
-
-          // Tarih karşılaştırmasıyla bugünkü indexi bul:
-          const today = new Date().toLocaleDateString('tr-TR');
-          const foundIndex = data.findIndex((item) => item.tarih === today);
-          setCurrentIndex(foundIndex !== -1 ? foundIndex : 0);
-        }
-      } catch (err) {
-        console.error('Veri alınamadı:', err);
-      }
-    };
-
-    fetchMeals();
-  }, []);
+  // İlk açılışta bugünün tarihine denk gelen index'i bul
+  const [currentIndex, setCurrentIndex] = useState(() => {
+    const today = new Date();
+    const day   = String(today.getDate()).padStart(2, "0");
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const year  = today.getFullYear();
+    const formatted = `${day}.${month}.${year}`;
+    const idx = mealData.findIndex(item => item.date === formatted);
+    return idx !== -1 ? idx : 0;
+  });
 
   const handleNext = () => {
-    setCurrentIndex((prev) => Math.min(prev + 1, allMeals.length - 1));
-  };
-
-  const handlePrev = () => {
-    setCurrentIndex((prev) => Math.max(prev - 1, 0));
-  };
-
-  const handleToday = () => {
-    const today = new Date().toLocaleDateString('tr-TR');
-    const todayIndex = allMeals.findIndex((item) => item.tarih === today);
-    if (todayIndex !== -1) {
-      setCurrentIndex(todayIndex);
+    if (currentIndex < mealData.length - 1) {
+      setCurrentIndex(currentIndex + 1);
     }
   };
 
-  const currentMeal = allMeals[currentIndex];
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  };
+
+  const handleToday = () => {
+    const today = new Date();
+    const day   = String(today.getDate()).padStart(2, "0");
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const year  = today.getFullYear();
+    const formatted = `${day}.${month}.${year}`;
+    const idx = mealData.findIndex(item => item.date === formatted);
+    if (idx !== -1) setCurrentIndex(idx);
+  };
+
+  const currentMeal = mealData[currentIndex];
 
   return (
     <div className="app">
-      <h1>İstanbul Üniversitesi Yemek Menüsü</h1>
-
       {currentMeal ? (
-        <div className="meal-card">
-          <p><strong>{currentMeal.tarih}</strong></p>
-          {currentMeal.yemekler.map((item, i) => (
-            <p key={i}>{item}</p>
-          ))}
-          <p><strong>{currentMeal.kalori}</strong></p>
-        </div>
+        <>
+          <div className="date">{currentMeal.date}</div>
+          <div className="meal-card">
+            {currentMeal.items.slice(0, -1).map((item, i) => (
+              <p className="meal-item" key={i}>{item}</p>
+            ))}
+            <p className="calories">{currentMeal.items.at(-1)}</p>
+          </div>
+          <div className="button-group">
+            <button onClick={handlePrev} disabled={currentIndex === 0}>
+              ← Önceki
+            </button>
+            <button onClick={handleToday}>Bugün</button>
+            <button
+              onClick={handleNext}
+              disabled={currentIndex === mealData.length - 1}
+            >
+              Sonraki →
+            </button>
+          </div>
+        </>
       ) : (
         <p>Yükleniyor...</p>
       )}
-
-      <div className="button-group">
-        <button onClick={handlePrev} disabled={currentIndex === 0}>← Önceki</button>
-        <button onClick={handleToday}>🎯 Bugün</button>
-        <button onClick={handleNext} disabled={currentIndex === allMeals.length - 1}>Sonraki →</button>
-      </div>
-
       <div className="note">Veriler: İstanbul Üniversitesi Yemek Listesi</div>
     </div>
   );
