@@ -1,28 +1,41 @@
 const puppeteer = require("puppeteer");
 const cheerio = require("cheerio");
 
-async function ayinYemekListesiniGetir() {
-  const browser = await puppeteer.launch({ headless: "new" });
+async function getYemekListesi(istenenTarihStr) {
+  const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
-  await page.goto("https://sks.iuc.edu.tr/tr/yemeklistesi", { waitUntil: "networkidle0" });
-  const content = await page.content();
+
+  await page.goto('https://sks.iuc.edu.tr/tr/yemeklistesi', { waitUntil: 'networkidle0' });
+
+  const yemekler = await page.$$eval('.col-sm-6.col-md-4.col-lg-3.ng-scope', (cards, istenenTarihStr) => {
+    const data = [];
+
+    for (let card of cards) {
+      const tarih = card.querySelector('.panel-heading')?.innerText.trim();
+      const icerik = Array.from(card.querySelectorAll('.panel-body p'))
+                          .map(p => p.innerText.trim())
+                          .filter(x => x);
+
+      if (tarih && icerik.length > 0) {
+        data.push({
+          tarih,
+          yemekler: icerik.slice(0, -1),
+          kalori: icerik[icerik.length - 1]
+        });
+      }
+    }
+
+    if (istenenTarihStr) {
+      const result = data.find(item => item.tarih === istenenTarihStr);
+      return result || null;
+    }
+
+    return data;
+  }, istenenTarihStr);
+
   await browser.close();
-
-  const $ = cheerio.load(content);
-  const yemekVerisi = [];
-
-  $(".yemek-listesi div.accordion-item").each((_, elem) => {
-    const tarih = $(elem).find("h2 button").text().trim().split(" - ")[0];
-    const yemekler = [];
-    $(elem).find("ul li").each((_, li) => {
-      yemekler.push($(li).text().trim());
-    });
-
-    const kalori = $(elem).find(".kalori").text().trim() || "Kalori";
-    yemekVerisi.push({ tarih, yemekler, kalori });
-  });
-
-  return yemekVerisi;
+  return yemekler;
 }
 
-module.exports = { ayinYemekListesiniGetir };
+
+module.exports = { getYemekListesi };

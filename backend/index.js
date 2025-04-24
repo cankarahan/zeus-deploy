@@ -1,35 +1,36 @@
 ﻿const express = require("express");
 const cors = require("cors");
-const { ayinYemekListesiniGetir } = require("./scraper");
+const { getYemekListesi } = require("./scraper");
 
 const app = express();
-const port = 3000;
+const PORT = 3000;
 
 app.use(cors());
 
-let aylikVeri = [];
+app.get("/yemekler", async (req, res) => {
+  const { date } = req.query;
 
-(async () => {
-  try {
-    aylikVeri = await ayinYemekListesiniGetir();
-    console.log("Ay verisi başarıyla yüklendi.");
-  } catch (err) {
-    console.error("Scraper Hatası:", err);
+  const data = await getMeals(); // scraper.js fonksiyonu
+  if (date === "all") {
+    return res.json(data); // tüm ay verilerini döndür
   }
-})();
 
-app.get("/yemekler", (req, res) => {
-  const date = req.query.date;
-  if (!date) return res.status(400).json({ error: "Tarih belirtilmedi" });
-
-  const sonuc = aylikVeri.find((v) => v.tarih === date);
-  if (sonuc) {
-    res.json(sonuc);
-  } else {
-    res.status(404).json({ error: "İçerik bulunamadı" });
+  if (date) {
+    const result = data.find((d) => d.tarih === date);
+    if (result) return res.json(result);
+    return res.status(404).json({ message: "Tarih bulunamadı" });
   }
+
+  // Bugünün tarihi
+  const today = new Date();
+  const formatted = today.toLocaleDateString("tr-TR").padStart(10, "0").replace(/\//g, ".");
+  const todayMeal = data.find((d) => d.tarih === formatted);
+
+  if (todayMeal) return res.json(todayMeal);
+  return res.status(404).json({ message: "Bugün için veri bulunamadı" });
 });
 
-app.listen(port, () => {
-  console.log(`Sunucu ${port} portunda çalışıyor`);
+
+app.listen(PORT, () => {
+  console.log(`Server ${PORT} portunda çalışıyor`);
 });

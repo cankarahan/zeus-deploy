@@ -167,6 +167,16 @@ const mealData = [
     "1069 Kalori"
     ]
   },
+  {
+    date: "01.05.2025",
+    items: [
+      "Mercimek Çorbası",
+    "Patlıcan Musakka",
+    "Arpa Şehriyeli Pirinç Pilavı",
+    "Cacık",
+    "1069 Kalori"
+    ]
+  },
 ];
 
 export default mealData;
